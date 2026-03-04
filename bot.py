@@ -162,10 +162,17 @@ Tipos validos: income o expense. Categorias: Comida, Transporte, Salud, Entreten
             max_tokens=200,
             messages=[{"role": "user", "content": prompt}]
         )
-        raw = response.content[0].text.strip().replace("```json","").replace("```","").strip()
+        raw = response.content[0].text.strip()
+        # Limpiar cualquier formato
+        raw = raw.replace("```json","").replace("```","").strip()
+        # Buscar el JSON dentro del texto
+        start = raw.find("{")
+        end = raw.rfind("}") + 1
+        if start >= 0 and end > start:
+            raw = raw[start:end]
         parsed = json.loads(raw)
-    except:
-        await update.message.reply_text("🤔 No entendí. Ejemplo: 'gasté 50 en comida'", reply_markup=KEYBOARD)
+    except Exception as e:
+        await update.message.reply_text(f"🤔 Error: {str(e)}\nRespuesta: {raw}", reply_markup=KEYBOARD)
         return
 
     data = get_user_data(update.message.from_user.id)
